@@ -10,6 +10,7 @@ find_package(glm CONFIG REQUIRED)
 include_directories(src)
 file(GLOB_RECURSE SOURCES
     "src/*.c"
+    "src/*.cpp"
 )
 add_executable(PhysicsSim ${SOURCES})
 
