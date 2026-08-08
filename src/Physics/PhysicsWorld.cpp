@@ -52,17 +52,15 @@ void PhysicsWorld::step(double timeStep) {
 
                 // Position correction (resolve overlap)
                 double overlap = radiusSum - dist;
-                // Weight the correction by mass so heavier objects move less
                 double totalMass = pm1->getMass() + pm2->getMass();
-                Vector3 correction = normal * (overlap * (pm2->getMass() / totalMass));
                 
-                pm1->setPosition(pos1 - correction); // Move 1 away from 2
-                // For the other object, we need to move it by the remaining portion of the overlap
-                // To keep it simple and consistent with common physics engines:
-                // We can just use a 0.5 factor if masses are equal or similar.
-                // Here we use a simplified approach for position correction:
-                pm1->setPosition(pos1 - (normal * (overlap * 0.5)));
-                pm2->setPosition(pos2 + (normal * (overlap * 0.5)));
+                // Weight the correction by mass so heavier objects move less.
+                // Each object moves proportional to the other's mass relative to the total mass.
+                Vector3 correction1 = normal * (overlap * (pm2->getMass() / totalMass));
+                Vector3 correction2 = normal * (overlap * (pm1->getMass() / totalMass));
+
+                pm1->setPosition(pos1 - correction1);
+                pm2->setPosition(pos2 + correction2);
 
                 // Velocity response (Impulse calculation)
                 Vector3 relativeVelocity = pm2->getVelocity() - pm1->getVelocity();
@@ -71,7 +69,7 @@ void PhysicsWorld::step(double timeStep) {
                 // Only apply impulse if objects are moving towards each other
                 if (velocityAlongNormal < 0) {
                     double restitution = 1.0; // Perfectly elastic collision
-                    float j_val = -(1.0 + restitution) * velocityAlongNormal;
+                    double j_val = -(1.0 + restitution) * velocityAlongNormal;
                     j_val /= (1.0 / pm1->getMass() + 1.0 / pm2->getMass());
 
                     Vector3 impulse = normal * j_val;
