@@ -6,7 +6,7 @@ namespace PhysicsEngine {
 
 class PointMass {
 public:
-    PointMass(const Vector3& position, double mass);
+    PointMass(const Vector3& position, double mass, double radius = 1.0);
 
     const Vector3& getPosition() const;
     void setPosition(const Vector3& position);
@@ -15,11 +15,14 @@ public:
     void setVelocity(const Vector3& velocity);
 
     double getMass() const;
+    double getRadius() const;
+    void setRadius(double radius);
 
 private:
     Vector3 position;
     Vector3 velocity;
     double mass;
+    double radius;
 };
 
 } // namespace PhysicsEngine

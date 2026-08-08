@@ -2,8 +2,8 @@
 
 namespace PhysicsEngine {
 
-PointMass::PointMass(const Vector3& position, double mass) 
-    : position(position), velocity(Vector3(0, 0, 0)), mass(mass) {}
+PointMass::PointMass(const Vector3& position, double mass, double radius) 
+    : position(position), velocity(Vector3(0, 0, 0)), mass(mass), radius(radius) {}
 
 const Vector3& PointMass::getPosition() const {
     return position;
@@ -23,6 +23,14 @@ void PointMass::setVelocity(const Vector3& velocity) {
 
 double PointMass::getMass() const {
     return mass;
+}
+
+double PointMass::getRadius() const {
+    return radius;
+}
+
+void PointMass::setRadius(double radius) {
+    this->radius = radius;
 }
 
 } // namespace PhysicsEngine
