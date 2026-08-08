@@ -56,3 +56,11 @@
 
 ```powershell
 .\PhysicsSim.exe
+```
+
+## aider 実行方法
+下記コマンドによりaiderを起動する
+
+```powershell
+aider --yes-always --no-show-model-warnings --model ollama/gemma4:12b
+```

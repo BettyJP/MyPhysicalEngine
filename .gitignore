@@ -1,3 +1,7 @@
 build
 roadmap.md
 .continue
+.venv
+.aider*
+.aider.*
+.python-version

@@ -1,9 +1,11 @@
-#include "PhysicsEngine/Physics/PointMass.hpp"
+#include "PhysicsEngine\Physics\PointMass.hpp"
 
 namespace PhysicsEngine {
 
-PointMass::PointMass(const Vector3& position, double mass, double radius) 
-    : position(position), velocity(Vector3(0, 0, 0)), mass(mass), radius(radius) {}
+PointMass::PointMass(const Vector3& position, double mass, double radius)
+    : position(position), mass(mass), radius(radius) {
+    velocity = Vector3(0.0, 0.0, 0.0);
+}
 
 const Vector3& PointMass::getPosition() const {
     return position;

@@ -11,6 +11,7 @@ include_directories(src)
 file(GLOB_RECURSE SOURCES
     "src/*.c"
     "src/*.cpp"
+    "src/*.hpp"
 )
 add_executable(PhysicsSim ${SOURCES})
 
