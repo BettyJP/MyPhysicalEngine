@@ -13,7 +13,7 @@ void PhysicsWorld::addPointMass(std::unique_ptr<PointMass> pointMass) {
 
 void PhysicsWorld::step(double timeStep) {
     // 1. Update physics for all objects (Gravity and Integration)
-    for (auto& pm : pointMasses) {
+    for (auto& pm : support_pm : pointMasses) {
         // Update velocity: v = v + g * dt
         Vector3 currentVelocity = pm->getVelocity();
         Vector3 acceleration = gravity; // Simple gravity
@@ -68,7 +68,7 @@ void PhysicsWorld::step(double timeStep) {
 
                 // Only apply impulse if objects are moving towards each other
                 if (velocityAlongNormal < 0) {
-                    double restitution = 1.0; // Perfectly elastic collision
+                    double restitution = 0.8; // Reduced from 1.0 to include energy loss
                     double j_val = -(1.0 + restitution) * velocityAlongNormal;
                     j_val /= (1.0 / pm1->getMass() + 1.0 / pm2->getMass());
 
@@ -82,6 +82,7 @@ void PhysicsWorld::step(double timeStep) {
 
     // 3. Environment Collision (Floor and Walls)
     // This handles the "U-shaped cup" boundaries defined in main.cpp
+    const double environmentRestitution = 0.8; // Coefficient for floor/wall bounce
     for (auto& pm : pointMasses) {
         Vector3 pos = pm->getPosition();
         double radius = pm->getRadius();
@@ -91,7 +92,8 @@ void PhysicsWorld::step(double timeStep) {
         if (pos.y < -1.0 + radius) {
             pm->setPosition(Vector3(pos.x, -1.0 + radius, pos.z));
             if (vel.y < 0) {
-                pm->setVelocity(Vector3(vel.x, -vel.y, vel.z));
+                // Apply restitution to the vertical velocity component
+                pm->setVelocity(Vector3(vel.x, -vel.y * environmentRestitution, vel.z));
             }
         }
 
@@ -99,7 +101,8 @@ void PhysicsWorld::step(double timeStep) {
         if (pos.x < -2.0 + radius) {
             pm->setPosition(Vector3(-2.0 + radius, pos.y, pos.z));
             if (vel.x < 0) {
-                pm->setVelocity(Vector3(-vel.x, vel.y, vel.z));
+                // Apply restitution to the horizontal velocity component
+                pm->setVelocity(Vector3(-vel.x * environmentRestitution, vel.y, vel.z));
             }
         }
 
@@ -107,7 +110,8 @@ void PhysicsWorld::step(double timeStep) {
         if (pos.x > 2.0 - radius) {
             pm->setPosition(Vector3(2.0 - radius, pos.y, pos.z));
             if (vel.x > 0) {
-                pm->setVelocity(Vector3(-vel.x, vel.y, vel.z));
+                // Apply restitution to the horizontal velocity component
+                pm->setVelocity(Vector3(-vel.x * environmentRestitution, vel.y, vel.z));
             }
         }
     }
