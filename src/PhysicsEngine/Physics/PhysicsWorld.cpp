@@ -11,7 +11,7 @@ void PhysicsWorld::addPointMass(std::unique_ptr<PointMass> pointMass) {
     pointMasses.push_back(std::move(pointMass));
 }
 
-void PhysicsWorld::step(double timeStep) {
+void PhysicsWorld\::step(double timeStep) {
     // 1. Update physics for all objects (Gravity and Integration)
     for (auto& pm : pointMasses) {
         // Update velocity: v = v + g * dt
@@ -26,7 +26,7 @@ void PhysicsWorld::step(double timeStep) {
         pm->setPosition(newPosition);
     }
 
-    // 2. Collision Detection and Response
+    // 2. Collision Detection and Response (Ball-to-Ball)
     for (size_t i = 0; i < pointMasses.size(); ++i) {
         for (size_t j = i + 1; j < pointMasses.size(); ++j) {
             auto& pm1 = pointMasses[i];
@@ -76,6 +76,38 @@ void PhysicsWorld::step(double timeStep) {
                     pm1->setVelocity(pm1->getVelocity() - impulse * (1.0 / pm1->getMass()));
                     pm2->setVelocity(pm2->getVelocity() + impulse * (1.0 / pm2->getMass()));
                 }
+            }
+        }
+    }
+
+    // 3. Environment Collision (Floor and Walls)
+    // This handles the "U-shaped cup" boundaries defined in main.cpp
+    for (auto& pm : pointMasses) {
+        Vector3 pos = pm->getPosition();
+        double radius = pm->getRadius();
+        Vector3 vel = pm->getVelocity();
+
+        // Floor collision (y = -1)
+        if (pos.y < -1.0 + radius) {
+            pm->setPosition(Vector3(pos.x, -1.0 + radius, pos.z));
+            if (vel.y < 0) {
+                pm->setVelocity(Vector3(vel.x, -vel.y, vel.z));
+            }
+        }
+
+        // Left wall collision (x = -2)
+        if (pos.x < -2.0 + radius) {
+            pm->setPosition(Vector3(-2.0 + radius, pos.y, pos.z));
+            if (vel.x < 0) {
+                pm->setVelocity(Vector3(-vel.x, vel.y, vel.z));
+            }
+        }
+
+        // Right wall collision (x = 2)
+        if (pos.x > 2.0 - radius) {
+            pm->setPosition(Vector3(2.0 - radius, pos.y, pos.z));
+            if (vel.x > 0) {
+                pm->setVelocity(Vector3(-vel.x, vel.y, vel.z));
             }
         }
     }
