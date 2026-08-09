@@ -70,7 +70,7 @@ int main() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // Setup Geometry (Simple Cube for Ball)
+    // Setup Geometry (Simple Cube for Ball/Objects)
     float vertices[] = {
         -0.5f, -0.5f, 0.0f,  0.5f, -0.5f, 0.0f,  0.5f,  0.5f, 0.0f,
          0.5f,  0.5f, 0.0f, -0.5f,  0.5f, 0.0f, -0.5f, -0.5f, 0.0f,
@@ -119,5 +119,44 @@ int main() {
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-        // Ground (Bottom of the cup)
-        glm::mat4 modelGround = glm::translate(glm::mat4(1.0f), glm::vec3(0.
+        glBindVertexArray(VAO);
+
+        // Draw Ground (Bottom of the cup)
+        glm::mat4 modelGround = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelGround));
+        glUniform4f(glGetUniformLocation(shaderProgram, "color"), 0.5f, 0.5f, 0.5f, 1.0f); // Gray
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // Draw Left Wall
+        glm::mat4 modelLeft = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelLeft));
+        glUniform4f(glGetUniformLocation(shaderProgram, "color"), 0.5f, 0.5f, 0.5f, 1.0f);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // Draw Right Wall
+        glm::mat4 modelRight = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelRight));
+        glUniform4f(glGetUniformLocation(shaderProgram, "color"), 0.5f, 0.5f, 0.5f, 1.0f);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // Draw Ball 1
+        glm::mat4 modelBall1 = glm::translate(glm::mat4(1.0f), glm::vec3(ball1Ptr->getPosition().x, ball1Ptr->getPosition().y, ball1Ptr->getPosition().z));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelBall1));
+        glUniform4f(glGetUniformLocation(shaderProgram, "color"), 1.0f, 0.0f, 0.0f, 1.0f); // Red
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // Draw Ball 2
+        glm::mat4 modelBall2 = glm::translate(glm::mat4(1.0f), glm::vec3(ball2Ptr->getPosition().x, ball2Ptr->getPosition().y, ball2Ptr->getPosition().z));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelBall2));
+        glUniform4f(glGetUniformLocation(shaderProgram, "color"), 0.0f, 0.0f, 1.0f, 1.0f); // Blue
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glBindVertexArray(0);
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glDeleteProgram(shaderProgram);
+    glfwTerminate();
+    return 0;
+}
