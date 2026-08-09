@@ -1,6 +1,6 @@
-#include "PhysicsEngine/Physics/PhysicsWorld.hpp"
-#include "PhysicsEngine/Physics/PointMass.hpp"
-#include "PhysicsEngine/Math/Vector3.hpp"
+#include "PhysicsEngine\Physics\PhysicsWorld.hpp"
+#include "PhysicsEngine\Physics\PointMass.hpp"
+#include "PhysicsEngine\Math\Vector3.hpp"
 #include <cmath>
 
 namespace PhysicsEngine {
@@ -13,7 +13,7 @@ void PhysicsWorld::addPointMass(std::unique_ptr<PointMass> pointMass) {
 
 void PhysicsWorld::step(double timeStep) {
     // 1. Update physics for all objects (Gravity and Integration)
-    for (auto& pm : support_pm : pointMasses) {
+    for (auto& pm : pointMasses) {
         // Update velocity: v = v + g * dt
         Vector3 currentVelocity = pm->getVelocity();
         Vector3 acceleration = gravity; // Simple gravity
