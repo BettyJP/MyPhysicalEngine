@@ -11,7 +11,7 @@ void PhysicsWorld::addPointMass(std::unique_ptr<PointMass> pointMass) {
     pointMasses.push_back(std::move(pointMass));
 }
 
-void PhysicsWorld\::step(double timeStep) {
+void PhysicsWorld::step(double timeStep) {
     // 1. Update physics for all objects (Gravity and Integration)
     for (auto& pm : pointMasses) {
         // Update velocity: v = v + g * dt
