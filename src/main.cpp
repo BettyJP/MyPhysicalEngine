@@ -40,7 +40,7 @@ int main() {
     if (!glfwInit()) return -1;
 
     // Configure Window
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Physics Engine - Point Mass", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Physics Engine - Two Balls in a Cup", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -94,9 +94,14 @@ int main() {
     const double timeStep = 0.016; // ~60 FPS
     PhysicsWorld world(gravity);
 
-    auto ball = std::make_unique<PointMass>(Vector3(0.0, 5.0, 0.0), 1.0);
-    PointMass* ballPtr = ball.get();
-    world.addPointMass(std::move(ball));
+    // Create two balls with slightly different initial positions and colors
+    auto ball1 = std::make_unique<PointMass>(Vector3(-0.5, 5.0, 0.0), 1.0);
+    PointMass* ball1Ptr = ball1.get();
+    world.addPointMass(std::move(ball1));
+
+    auto ball2 = std::make_unique<PointMass>(Vector3(0.5, 6.0, 0.0), 1.0);
+    PointMass* ball2Ptr = ball2.get();
+    world.addPointMass(std::move(ball2));
 
     // Render Loop
     while (!glfwWindowShouldClose(window)) {
@@ -111,40 +116,8 @@ int main() {
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -15.0f));
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        // Ground
-        glm::mat4 modelGround = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
-        modelGround *= glm::scale(modelGround, glm::vec3(10.0f, 0.1f, 10.0f));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelGround));
-        glUniform4f(glGetUniformLocation(shaderProgram, "color"), 0.5f, 0.5f, 0.5f, 1.0f);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        // Ball
-        const Vector3& pos = ballPtr->getPosition();
-        // Simple ground collision in main loop (as before)
-        if (pos.y < -2.0f) {
-            Vector3 vel = ballPtr->getVelocity();
-            vel.y = -vel.y * 0.7;
-            ballPtr->setVelocity(vel);
-            ballPtr->setPosition(Vector3(pos.x, -2.0f, pos.z));
-        }
-
-        glm::mat4 modelBall = glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, pos.z));
-        modelBall *= glm::scale(modelBall, glm::vec3(1.0f, 1.0f, 1.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelBall));
-        glUniform4f(glGetUniformLocation(shaderProgram, "color"), 1.0f, 0.0f, 0.0f, 1.0f);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
-
-    glfwTerminate();
-    return 0;
-}
+        // Ground (Bottom of the cup)
+        glm::mat4 modelGround = glm::translate(glm::mat4(1.0f), glm::vec3(0.
