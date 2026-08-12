@@ -48,7 +48,7 @@
    構成が成功したら、ビルドを実行します。
 
    ```powershell
-   cmake --build .
+   cmake --build build --config Debug
    ```
 
 ## 実行方法
@@ -57,6 +57,25 @@
 ```powershell
 .\PhysicsSim.exe
 ```
+
+### 操作方法
+- **`[LEFT / RIGHT]` 矢印キー**: カメラの水平回転
+- **`[UP / DOWN]` 矢印キー**: カメラの高さ調整
+- **`[SPACE]`**: ランダムな球体を新規投入
+- **`[R]`**: シミュレーションのリセット
+- **`[P]`**: シミュレーションの一時停止 / 再開
+- **`[V]`**: **MP4動画録画の開始 / 停止 (ON/OFF)**
+
+### MP4動画エンコード機能 (FFmpeg)
+シミュレーション画面を MP4 動画 (`output.mp4`) として直接保存するには、環境変数 PATH に **FFmpeg** が通っている必要があります。
+
+未アクセスの場合は、以下の PowerShell コマンドで簡単にインストールできます：
+
+```powershell
+winget install Gyan.FFmpeg
+```
+
+※ FFmpeg が存在しない場合でも、`captures/` ディレクトリ内に PPM 連番画像として自動フォールバック保存されます。
 
 ## aider 実行方法
 下記コマンドによりaiderを起動する

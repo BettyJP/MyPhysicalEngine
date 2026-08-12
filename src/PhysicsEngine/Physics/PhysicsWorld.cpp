@@ -1,6 +1,6 @@
-#include "PhysicsEngine\Physics\PhysicsWorld.hpp"
-#include "PhysicsEngine\Physics\PointMass.hpp"
-#include "PhysicsEngine\Math\Vector3.hpp"
+#include "PhysicsEngine/Physics/PhysicsWorld.hpp"
+#include "PhysicsEngine/Physics/PointMass.hpp"
+#include "PhysicsEngine/Math/Vector3.hpp"
 #include <cmath>
 
 namespace PhysicsEngine {
@@ -11,109 +11,149 @@ void PhysicsWorld::addPointMass(std::unique_ptr<PointMass> pointMass) {
     pointMasses.push_back(std::move(pointMass));
 }
 
+const std::vector<std::unique_ptr<PointMass>>& PhysicsWorld::getPointMasses() const {
+    return pointMasses;
+}
+
+void PhysicsWorld::clear() {
+    pointMasses.clear();
+}
+
+void PhysicsWorld::setGravity(const Vector3& gravity) {
+    this->gravity = gravity;
+}
+
+const Vector3& PhysicsWorld::getGravity() const {
+    return gravity;
+}
+
 void PhysicsWorld::step(double timeStep) {
-    // 1. Update physics for all objects (Gravity and Integration)
+    integrate(timeStep);
+    resolveCollisions();
+    resolveEnvironmentCollisions();
+}
+
+void PhysicsWorld::integrate(double timeStep) {
     for (auto& pm : pointMasses) {
-        // Update velocity: v = v + g * dt
-        Vector3 currentVelocity = pm->getVelocity();
-        Vector3 acceleration = gravity; // Simple gravity
-        Vector3 newVelocity = currentVelocity + (acceleration * timeStep);
-        pm->setVelocity(newVelocity);
+        if (pm->isStatic()) continue;
 
-        // Update position: p = p + v * dt
-        Vector3 currentPosition = pm->getPosition();
-        Vector3 newPosition = currentPosition + (newVelocity * timeStep);
-        pm->setPosition(newPosition);
+        // Calculate total acceleration: a = g + (F / m)
+        Vector3 accel = gravity + (pm->getAccumulatedForce() * pm->getInverseMass());
+
+        // Symplectic Euler: Update velocity first, then position with new velocity
+        Vector3 newVel = pm->getVelocity() + (accel * timeStep);
+        pm->setVelocity(newVel);
+
+        Vector3 newPos = pm->getPosition() + (newVel * timeStep);
+        pm->setPosition(newPos);
+
+        pm->clearForces();
     }
+}
 
-    // 2. Collision Detection and Response (Ball-to-Ball)
-    for (size_t i = 0; i < pointMasses.size(); ++i) {
-        for (size_t j = i + 1; j < pointMasses.size(); ++j) {
+void PhysicsWorld::resolveCollisions() {
+    size_t count = pointMasses.size();
+    for (size_t i = 0; i < count; ++i) {
+        for (size_t j = i + 1; j < count; ++j) {
             auto& pm1 = pointMasses[i];
             auto& pm2 = pointMasses[j];
 
+            if (pm1->isStatic() && pm2->isStatic()) continue;
+
             Vector3 pos1 = pm1->getPosition();
             Vector3 pos2 = pm2->getPosition();
-            
-            // Calculate distance between centers
+
             Vector3 delta = pos2 - pos1;
             double dist = delta.length();
             double radiusSum = pm1->getRadius() + pm2->getRadius();
 
             if (dist < radiusSum) {
-                // Collision detected!
                 Vector3 normal;
-                if (dist > 0.0001) {
-                    normal = delta * (1.0 / dist); // Normalized direction from 1 to 2
+                if (dist > 1e-6) {
+                    normal = delta / dist;
                 } else {
-                    // Fallback if objects are at the exact same position
-                    normal = Vector3(0, 1, 0);
+                    normal = Vector3(0.0, 1.0, 0.0);
                 }
 
-                // Position correction (resolve overlap)
                 double overlap = radiusSum - dist;
-                double totalMass = pm1->getMass() + pm2->getMass();
-                
-                // Weight the correction by mass so heavier objects move less.
-                // Each object moves proportional to the other's mass relative to the total mass.
-                Vector3 correction1 = normal * (overlap * (pm2->getMass() / totalMass));
-                Vector3 correction2 = normal * (overlap * (pm1->getMass() / totalMass));
+                double invM1 = pm1->getInverseMass();
+                double invM2 = pm2->getInverseMass();
+                double totalInvMass = invM1 + invM2;
 
-                pm1->setPosition(pos1 - correction1);
-                pm2->setPosition(pos2 + correction2);
+                if (totalInvMass > 0.0) {
+                    // Position correction proportional to inverse mass
+                    Vector3 corr1 = normal * (overlap * (invM1 / totalInvMass));
+                    Vector3 corr2 = normal * (overlap * (invM2 / totalInvMass));
 
-                // Velocity response (Impulse calculation)
-                Vector3 relativeVelocity = pm2->getVelocity() - pm1->getVelocity();
-                double velocityAlongNormal = relativeVelocity.dot(normal);
+                    pm1->setPosition(pos1 - corr1);
+                    pm2->setPosition(pos2 + corr2);
+                }
 
-                // Only apply impulse if objects are moving towards each other
-                if (velocityAlongNormal < 0) {
-                    double restitution = 0.8; // Reduced from 1.0 to include energy loss
-                    double j_val = -(1.0 + restitution) * velocityAlongNormal;
-                    j_val /= (1.0 / pm1->getMass() + 1.0 / pm2->getMass());
+                // Impulse-based velocity response
+                Vector3 relVel = pm2->getVelocity() - pm1->getVelocity();
+                double velAlongNormal = relVel.dot(normal);
 
-                    Vector3 impulse = normal * j_val;
-                    pm1->setVelocity(pm1->getVelocity() - impulse * (1.0 / pm1->getMass()));
-                    pm2->setVelocity(pm2->getVelocity() + impulse * (1.0 / pm2->getMass()));
+                if (velAlongNormal < 0.0) {
+                    double e = pm1->getRestitution() * pm2->getRestitution();
+                    double j_impulse = -(1.0 + e) * velAlongNormal;
+                    j_impulse /= totalInvMass;
+
+                    Vector3 impulse = normal * j_impulse;
+                    pm1->setVelocity(pm1->getVelocity() - impulse * invM1);
+                    pm2->setVelocity(pm2->getVelocity() + impulse * invM2);
                 }
             }
         }
     }
+}
 
-    // 3. Environment Collision (Floor and Walls)
-    // This handles the "U-shaped cup" boundaries defined in main.cpp
-    const double environmentRestitution = 0.8; // Coefficient for floor/wall bounce
+void PhysicsWorld::resolveEnvironmentCollisions() {
+    const double envMinX = -2.5;
+    const double envMaxX = 2.5;
+    const double envMinY = -1.0;
+    const double envMinZ = -2.5;
+    const double envMaxZ = 2.5;
+
     for (auto& pm : pointMasses) {
+        if (pm->isStatic()) continue;
+
         Vector3 pos = pm->getPosition();
-        double radius = pm->getRadius();
         Vector3 vel = pm->getVelocity();
+        double radius = pm->getRadius();
+        double e = pm->getRestitution();
 
-        // Floor collision (y = -1)
-        if (pos.y < -1.0 + radius) {
-            pm->setPosition(Vector3(pos.x, -1.0 + radius, pos.z));
-            if (vel.y < 0) {
-                // Apply restitution to the vertical velocity component
-                pm->setVelocity(Vector3(vel.x, -vel.y * environmentRestitution, vel.z));
-            }
+        // Floor (y = envMinY)
+        if (pos.y - radius < envMinY) {
+            pos.y = envMinY + radius;
+            if (vel.y < 0.0) vel.y = -vel.y * e;
         }
 
-        // Left wall collision (x = -2)
-        if (pos.x < -2.0 + radius) {
-            pm->setPosition(Vector3(-2.0 + radius, pos.y, pos.z));
-            if (vel.x < 0) {
-                // Apply restitution to the horizontal velocity component
-                pm->setVelocity(Vector3(-vel.x * environmentRestitution, vel.y, vel.z));
-            }
+        // Left Wall (x = envMinX)
+        if (pos.x - radius < envMinX) {
+            pos.x = envMinX + radius;
+            if (vel.x < 0.0) vel.x = -vel.x * e;
         }
 
-        // Right wall collision (x = 2)
-        if (pos.x > 2.0 - radius) {
-            pm->setPosition(Vector3(2.0 - radius, pos.y, pos.z));
-            if (vel.x > 0) {
-                // Apply restitution to the horizontal velocity component
-                pm->setVelocity(Vector3(-vel.x * environmentRestitution, vel.y, vel.z));
-            }
+        // Right Wall (x = envMaxX)
+        if (pos.x + radius > envMaxX) {
+            pos.x = envMaxX - radius;
+            if (vel.x > 0.0) vel.x = -vel.x * e;
         }
+
+        // Back Wall (z = envMinZ)
+        if (pos.z - radius < envMinZ) {
+            pos.z = envMinZ + radius;
+            if (vel.z < 0.0) vel.z = -vel.z * e;
+        }
+
+        // Front Wall (z = envMaxZ)
+        if (pos.z + radius > envMaxZ) {
+            pos.z = envMaxZ - radius;
+            if (vel.z > 0.0) vel.z = -vel.z * e;
+        }
+
+        pm->setPosition(pos);
+        pm->setVelocity(vel);
     }
 }
 
