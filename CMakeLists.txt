@@ -8,11 +8,11 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 include_directories(src)
-add_executable(PhysicsSim
-    src/main.cpp
-    src/Physics/PointMass.cpp
-    src/Physics/PhysicsWorld.cpp
-    src/glad.c
+file(GLOB_RECURSE SOURCES
+    "src/*.c"
+    "src/*.cpp"
+    "src/*.hpp"
 )
+add_executable(PhysicsSim ${SOURCES})
 
 target_link_libraries(PhysicsSim PRIVATE glfw glad::glad glm::glm)

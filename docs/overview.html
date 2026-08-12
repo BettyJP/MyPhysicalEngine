@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyPhysicalEngine - 全体概要 (Overview)</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --border-color: #334155;
+            --code-bg: #0f172a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            letter-spacing: -0.025em;
+        }
+
+        header p {
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        h2 {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .tech-stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .tech-card {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .tech-card h3 {
+            margin-top: 0;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+
+        .component-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .component-item {
+            border-left: 4px solid var(--accent-color);
+            background: var(--code-bg);
+            margin-bottom: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .component-item h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--accent-color);
+        }
+
+        .flow-diagram {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            color: #38bdf8;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        nav {
+            margin-top: 1rem;
+        }
+
+        nav a {
+            color: var(--accent-color);
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 600;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>MyPhysicalEngine - 全体概要</h1>
+    <p>PBD (Position Based Dynamics) & Symplectic Euler ベース 3D 物理シミュレーションエンジン</p>
+    <nav>
+        <a href="overview.html">全体概要</a> |
+        <a href="details.html">詳細実装ドキュメント</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <section class="section">
+        <h2>1. プロジェクトの目的</h2>
+        <p>
+            <code>MyPhysicalEngine</code> は、C++17 および Modern OpenGL (3.3 Core Profile) を用いて構築された高性能かつ視覚的に高品質な 3D 物理シミュレーションエンジンです。<br>
+            質点（PointMass）・球体（Sphere）の運動計算、重力落下、物体間・環境境界との衝突判定および反発インパルス計算をリアルタイムでシミュレーションし、Blinn-Phong ライティングを用いた 3D グラフィックス描画およびリアルタイム最高画質 (H.264 Lossless / Apple ProRes) での動画録画機能を提供します。
+        </p>
+    </section>
+
+    <section class="section">
+        <h2>2. 技術スタック</h2>
+        <div class="tech-stack-grid">
+            <div class="tech-card">
+                <h3>Core Language</h3>
+                <p><strong>C++17</strong> (MSVC / GCC / Clang)<br>スマートポインタ (RAII) による所有権とメモリ管理の徹底。</p>
+            </div>
+            <div class="tech-card">
+                <h3>Build & Dependency</h3>
+                <p><strong>CMake 3.10+</strong> & <strong>vcpkg</strong><br>クロスプラットフォーム ビルド構成とパッケージ管理。</p>
+            </div>
+            <div class="tech-card">
+                <h3>Graphics API & Windowing</h3>
+                <p><strong>OpenGL 3.3 Core Profile</strong><br><strong>GLFW3</strong> (ウィンドウ・入力管理)<br><strong>GLAD</strong> (OpenGLローダー)</p>
+            </div>
+            <div class="tech-card">
+                <h3>Math & Media Output</h3>
+                <p><strong>GLM</strong> (行列・カメラ計算)<br><strong>FFmpeg (Pipe Streaming)</strong><br>リアルタイム H.264 (CRF 0) / ProRes 動画録画。</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>3. 主要コンポーネントの役割</h2>
+        <ul class="component-list">
+            <li class="component-item">
+                <h3>Physics Engine Module (PhysicsEngine::Physics)</h3>
+                <p>
+                    <strong>PhysicsWorld</strong>: シミュレーション全体の統合クラス。Symplectic Euler 積分、球体同士の衝突検知・位置補正・反発インパルス応答、コンテナ境界との衝突計算を管理。<br>
+                    <strong>PointMass</strong>: 質量、半径、位置、速度、反発係数、カラーおよび力の蓄積器を持つ質点・球体物理オブジェクト。
+                </p>
+            </li>
+            <li class="component-item">
+                <h3>Math Module (PhysicsEngine::Math)</h3>
+                <p>
+                    <strong>Vector3</strong>: 3次元ベクトルの基本データ構造。加減乗除、ドット積、クロス積、正規化、自乗長さを提供。
+                </p>
+            </li>
+            <li class="component-item">
+                <h3>Geometry Module (PhysicsEngine::Geometry)</h3>
+                <p>
+                    <strong>SphereMesh</strong>: UV Sphere（緯度・経度分割）の 3D メッシュ（頂点位置・法線・EBO）を動的生成し、VAO/VBO/EBO をカプセル化して描画。
+                </p>
+            </li>
+            <li class="component-item">
+                <h3>Utils Module (PhysicsEngine::Utils)</h3>
+                <p>
+                    <strong>MP4Recorder</strong>: OpenGL のフレームバッファ (<code>glReadPixels</code>) をキャプチャし、FFmpeg の標準入力パイプへストリーミングして無劣化動画 (MP4/MOV) にエンコード。
+                </p>
+            </li>
+        </ul>
+    </section>
+
+    <section class="section">
+        <h2>4. 全体アーキテクチャ & データフロー</h2>
+        <div class="flow-diagram">
+[ Main Loop (main.cpp) ]
+       │
+       ├── 1. User Input Handling (GLFW Key Events: Space, R, P, V, Arrow Keys)
+       │
+       ├── 2. Physics Simulation Step (PhysicsWorld::step)
+       │      ├── Integrate Velocities & Positions (Symplectic Euler)
+       │      ├── Resolve Ball-to-Ball Collisions (Overlap correction + Impulse)
+       │      └── Resolve Container Environment Collisions (Floor & Wall bouncing)
+       │
+       ├── 3. Rendering Pipeline (OpenGL 3.3 Shader)
+       │      ├── View / Projection Transformation (GLM Orbit Camera)
+       │      ├── Blinn-Phong Shading (LightPosition, EyePosition)
+       │      ├── Render Container Floor Mesh
+       │      └── Render Physics Spheres (SphereMesh::draw)
+       │
+       └── 4. Video Recording & Swap (MP4Recorder)
+              ├── Read Pixels (glReadPixels, Y-flip)
+              ├── Write Stream to FFmpeg Pipe (x264 Lossless CRF 0 / ProRes HQ)
+              └── Swap Buffers & Poll Events
+        </div>
+    </section>
+
+</div>
+
+</body>
+</html>
